@@ -8,11 +8,4 @@ class Produto(BaseModel):
     genero: str
     publicacao: str
     preco: float
- 
-class Pedidos(BaseModel):
-    id: int
-    products: List[str]
-    status: str
- 
-class UpdateStatus(BaseModel):
-    status: str
+    preco: float
