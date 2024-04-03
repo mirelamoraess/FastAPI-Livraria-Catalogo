@@ -5,6 +5,14 @@ import json
 
 app = FastAPI()
 
+buscaProduto = {
+    1:'FQVDDwAAQBAJ',
+    2:'I__4CQAAQBAJ',
+    3:'xxLmDwAAQBAJ',
+    4:'YfT3EAAAQBAJ',
+    5:'6RQ-AQAAQBAJ'
+}
+
 produtos = {
     1: {
         "titulo": "A princesa salva a si mesma neste livro",
@@ -66,6 +74,30 @@ async def get_cantores():
         d3 = dict(d1, **d2)
         d4[chave] = d3
     return d4
+
+#Consumindo api online
+
+@app.get('/apilink/{produto_id}')
+async def get_produtos_id(produto_id):
+    try:
+        produto_id = int(produto_id)
+        produto = produtos[produto_id]
+        produto.update({"id": produto_id})
+       
+        url = f'https://play.google.com/store/books/details?id={buscaProduto[produto_id]}'
+ 
+        print(url)
+       
+        res = requests.get(url)
+ 
+        data = res.json()
+        data_link = data["link"]
+        link  = {"link para seus livros no Google Books:": data_link}
+        return produto, link
+    except KeyError:
+          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND , detail='livro não encontrado.')
+    except  ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND , detail="So aceito inteiros....")
 
 @app.get('/produtos')
 async def get_produtos():
