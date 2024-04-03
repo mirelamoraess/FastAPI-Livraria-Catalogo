@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException, status, Response
 from models import Produto
+import requests
+import json
 
 app = FastAPI()
 
@@ -41,6 +43,29 @@ produtos = {
         "preco": 52.80
     }
 }
+
+pedidos = {
+    1: {"cliente": "Cliente 1", "produtos": [1]},
+    2: {"cliente": "Cliente 2", "produtos": [2]},
+    3: {"cliente": "Cliente 2", "produtos": [3]},
+    4: {"cliente": "Cliente 2", "produtos": [4]},
+    5: {"cliente": "Cliente 2", "produtos": [5]},
+    
+}
+
+#Consumindo api de outro computador
+
+@app.get('/produto_pedidos')
+async def get_cantores():
+    request = requests.get("http://10.234.88.90:8001/produtos")
+    produtos = json.loads(request.content)
+    d4  ={}
+    for chave in produtos.keys():
+        d1 = produtos[chave]
+        d2 = pedidos[int(chave)]
+        d3 = dict(d1, **d2)
+        d4[chave] = d3
+    return d4
 
 @app.get('/produtos')
 async def get_produtos():
