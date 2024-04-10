@@ -5,6 +5,12 @@ import json
 
 app = FastAPI()
 
+proxies = {
+   'http': 'http://127.0.0.1:8080',
+   'https': 'http://127.0.0.1:8080',
+}
+
+# Busca por produto pelo ID
 buscaProduto = {
     1:'FQVDDwAAQBAJ',
     2:'I__4CQAAQBAJ',
@@ -13,6 +19,7 @@ buscaProduto = {
     5:'6RQ-AQAAQBAJ'
 }
 
+# Catálogo de Produtos
 produtos = {
     1: {
         "titulo": "A princesa salva a si mesma neste livro",
@@ -52,6 +59,7 @@ produtos = {
     }
 }
 
+# Pedidos
 pedidos = {
     1: {"cliente": "Cliente 1", "produtos": [1]},
     2: {"cliente": "Cliente 2", "produtos": [2]},
@@ -61,13 +69,16 @@ pedidos = {
     
 }
 
-#Consumindo api de outro computador
+# Consumindo api de outro computador
+@app.get('/produtos_pedidos')
+async def get_produtos_pedidos():
 
-@app.get('/produto_pedidos')
-async def get_cantores():
-    request = requests.get("http://10.234.88.90:8001/produtos")
+    request = requests.get("http://10.234.88.90:8000/pedidos", proxies=proxies)
+
+    print(request.content)
     produtos = json.loads(request.content)
-    d4  ={}
+    print(produtos)
+    d4  = {}
     for chave in produtos.keys():
         d1 = produtos[chave]
         d2 = pedidos[int(chave)]
@@ -75,8 +86,7 @@ async def get_cantores():
         d4[chave] = d3
     return d4
 
-#Consumindo api online
-
+# Consumindo api online
 @app.get('/apilink/{produto_id}')
 async def get_produtos_id(produto_id):
     try:
@@ -88,7 +98,7 @@ async def get_produtos_id(produto_id):
  
         print(url)
        
-        res = requests.get(url)
+        res = requests.get(url, proxies=proxies)
  
         data = res.json()
         data_link = data["link"]
@@ -99,6 +109,7 @@ async def get_produtos_id(produto_id):
     except  ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND , detail="So aceito inteiros....")
 
+# Rotas GET servirão para recuperar os dados
 @app.get('/produtos')
 async def get_produtos():
     return produtos
@@ -114,7 +125,8 @@ async def get_produto(produto_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Produto não encontrado')
     except ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='O valor deve ser inteiro')
-    
+
+# Rotas POST servirão para enviar dados   
 @app.post("/produtos")
 async def get_produto(produto: Produto):
     if produto.id not in produtos:
@@ -124,6 +136,7 @@ async def get_produto(produto: Produto):
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Já existe um produto com o ID")
 
+# Rotas PUT servirá para atualização
 @app.put('/produtos/{produto_id}')
 async def get_produto(produto_id: int, produto: Produto):
     if produto_id in produtos:
@@ -132,7 +145,9 @@ async def get_produto(produto_id: int, produto: Produto):
         return produto
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Produto não encontrado')
-    
+
+
+  
 @app.delete('/produtos/{produto_id}')
 async def delete_produto(produto_id: int):
     if produto_id in produtos:
@@ -140,7 +155,9 @@ async def delete_produto(produto_id: int):
         return{'message': 'Produto excluído com sucesso!'}
     else:
         return{"error": "Produto não encontrado!"}
+
+
     
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("main:app", host='127.0.0.1', port=8000, reload=True)
+    uvicorn.run("main:app", host='0.0.0.0', port=8000, reload=True)
